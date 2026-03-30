@@ -3,797 +3,505 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>jc0818 | Security Researcher</title>
+<title>jc0818 — Security Researcher</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --green: #00ff41;
-    --green-dim: #00cc33;
-    --green-dark: #003300;
-    --green-glow: rgba(0,255,65,0.15);
-    --green-glow-strong: rgba(0,255,65,0.4);
-    --red: #ff0033;
-    --yellow: #ffcc00;
-    --cyan: #00ffff;
-    --bg: #000000;
-    --bg2: #030d03;
-    --border: rgba(0,255,65,0.25);
-    --mono: 'Share Tech Mono', monospace;
-    --display: 'Orbitron', monospace;
-    --vt: 'VT323', monospace;
+    --bg:       #0d1117;
+    --bg2:      #161b22;
+    --bg3:      #1c2128;
+    --border:   #30363d;
+    --border2:  #21262d;
+    --text:     #e6edf3;
+    --text2:    #8b949e;
+    --text3:    #6e7681;
+    --accent:   #58a6ff;
+    --green:    #3fb950;
+    --red:      #f85149;
+    --orange:   #e3b341;
+    --sans:     'Inter', -apple-system, sans-serif;
+    --mono:     'JetBrains Mono', monospace;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  ::selection { background: var(--green); color: #000; }
-
   html { scroll-behavior: smooth; }
+  ::selection { background: rgba(88,166,255,0.25); }
 
   body {
     background: var(--bg);
-    color: var(--green);
-    font-family: var(--mono);
-    overflow-x: hidden;
-    cursor: none;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* CUSTOM CURSOR */
-  #cursor {
-    width: 20px; height: 20px;
-    border: 2px solid var(--green);
-    border-radius: 50%;
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
-    mix-blend-mode: screen;
-  }
-  #cursor-dot {
-    width: 4px; height: 4px;
-    background: var(--green);
-    border-radius: 50%;
-    position: fixed;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-  }
-  body:hover #cursor { box-shadow: 0 0 10px var(--green-glow-strong); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
 
-  /* SCANLINES */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 2px,
-      rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px
-    );
-    pointer-events: none; z-index: 10000;
-  }
-
-  /* MATRIX CANVAS */
-  #matrix-bg {
-    position: fixed; inset: 0;
-    z-index: 0; opacity: 0.07;
-  }
-
-  /* NOISE OVERLAY */
-  body::after {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 1; opacity: 0.4;
-  }
-
-  /* LAYOUT */
-  .wrapper { position: relative; z-index: 2; max-width: 960px; margin: 0 auto; padding: 0 24px; }
-
-  /* HEADER / BOOT SCREEN */
-  #boot {
-    position: fixed; inset: 0;
-    background: #000;
-    z-index: 8000;
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column;
-    transition: opacity 0.5s;
-  }
-  #boot-text {
-    font-family: var(--vt);
-    font-size: clamp(14px, 2vw, 18px);
-    color: var(--green);
-    width: min(700px, 90vw);
-    line-height: 1.6;
-    white-space: pre-wrap;
-  }
-  #boot-cursor { display: inline-block; width: 10px; height: 1.2em; background: var(--green); vertical-align: bottom; animation: blink 0.7s step-end infinite; }
+  .page { max-width: 720px; margin: 0 auto; padding: 0 24px; }
 
   /* NAV */
   nav {
-    position: sticky; top: 0; z-index: 100;
+    padding: 16px 0;
     border-bottom: 1px solid var(--border);
-    background: rgba(0,0,0,0.92);
-    backdrop-filter: blur(6px);
-    padding: 14px 0;
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(10px);
   }
-  .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-  .nav-logo {
-    font-family: var(--display); font-size: 1rem; font-weight: 900;
-    letter-spacing: 0.1em;
-    color: var(--green);
-    text-shadow: 0 0 20px var(--green-glow-strong);
-  }
-  .nav-logo span { color: var(--red); }
-  .nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
-  .nav-links a {
-    font-family: var(--mono); font-size: 0.72rem;
-    color: var(--green-dim); text-decoration: none;
-    padding: 5px 12px; border: 1px solid transparent;
-    letter-spacing: 0.12em; transition: all 0.2s;
-    text-transform: uppercase;
-  }
-  .nav-links a:hover {
-    color: var(--green); border-color: var(--border);
-    background: var(--green-glow);
-    text-shadow: 0 0 8px var(--green);
-  }
+  .nav-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .nav-logo { font-family: var(--mono); font-size: 0.9rem; color: var(--text); font-weight: 500; }
+  .nav-logo span { color: var(--text3); }
+  .nav-links { display: flex; gap: 20px; }
+  .nav-links a { font-size: 0.82rem; color: var(--text2); transition: color 0.15s; }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
 
-  /* HERO */
-  #hero {
-    min-height: 100vh; display: flex; align-items: center;
-    padding: 120px 0 80px;
+  /* PROFILE */
+  .profile { padding: 56px 0 36px; border-bottom: 1px solid var(--border); }
+  .profile-top { display: flex; gap: 20px; align-items: center; margin-bottom: 18px; }
+  .avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--bg2); border: 1px solid var(--border);
+    font-family: var(--mono); font-size: 1.4rem;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent); flex-shrink: 0;
+    object-fit: cover;
   }
-  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-  @media(max-width:640px){ .hero-grid { grid-template-columns: 1fr; } }
+  .profile-name { font-size: 1.35rem; font-weight: 600; color: var(--text); }
+  .profile-handle { font-family: var(--mono); font-size: 0.85rem; color: var(--text3); margin-top: 2px; }
+  .profile-bio { color: var(--text2); font-size: 0.92rem; margin-bottom: 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 0.74rem; padding: 3px 10px;
+    border-radius: 20px; border: 1px solid var(--border);
+    background: var(--bg2); color: var(--text2);
+  }
+  .chip.blue   { border-color: rgba(88,166,255,0.35); color: var(--accent); background: rgba(88,166,255,0.08); }
+  .chip.green  { border-color: rgba(63,185,80,0.35); color: var(--green); background: rgba(63,185,80,0.08); }
+  .chip.orange { border-color: rgba(227,179,65,0.35); color: var(--orange); background: rgba(227,179,65,0.08); }
 
-  .hero-tag {
-    font-family: var(--mono); font-size: 0.72rem;
-    color: var(--red); letter-spacing: 0.2em;
-    text-transform: uppercase; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 8px;
+  /* STATS */
+  .stats {
+    display: flex; gap: 36px; flex-wrap: wrap;
+    padding: 24px 0; border-bottom: 1px solid var(--border);
   }
-  .hero-tag::before { content: '//'; opacity: 0.5; }
-
-  .hero-name {
-    font-family: var(--display); font-weight: 900;
-    font-size: clamp(2.8rem, 6vw, 5rem);
-    line-height: 1; letter-spacing: -0.02em;
-    color: var(--green);
-    text-shadow: 0 0 40px var(--green-glow-strong), 0 0 80px var(--green-glow);
-    margin-bottom: 8px;
-  }
-  .hero-handle {
-    font-family: var(--display); font-size: clamp(1rem, 2vw, 1.4rem);
-    color: var(--cyan); letter-spacing: 0.15em; margin-bottom: 24px;
-    text-shadow: 0 0 20px rgba(0,255,255,0.4);
-  }
-  .hero-desc {
-    font-size: 0.82rem; line-height: 1.8;
-    color: rgba(0,255,65,0.6); max-width: 420px;
-    margin-bottom: 36px;
-  }
-
-  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
-  .btn-primary {
-    font-family: var(--mono); font-size: 0.75rem;
-    color: #000; background: var(--green);
-    border: none; padding: 12px 24px;
-    letter-spacing: 0.15em; text-transform: uppercase;
-    cursor: none; text-decoration: none;
-    transition: all 0.2s;
-    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-    font-weight: 700;
-  }
-  .btn-primary:hover { background: #fff; box-shadow: 0 0 30px var(--green-glow-strong); }
-  .btn-secondary {
-    font-family: var(--mono); font-size: 0.75rem;
-    color: var(--green); background: transparent;
-    border: 1px solid var(--green); padding: 12px 24px;
-    letter-spacing: 0.15em; text-transform: uppercase;
-    cursor: none; text-decoration: none;
-    transition: all 0.2s;
-    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
-  }
-  .btn-secondary:hover { background: var(--green-glow); box-shadow: 0 0 20px var(--green-glow); }
-
-  /* ASCII ART PANEL */
-  .ascii-panel {
-    font-family: var(--vt); font-size: clamp(0.55rem, 1.1vw, 0.85rem);
-    color: var(--green-dim); line-height: 1.2;
-    padding: 28px; background: rgba(0,255,65,0.03);
-    border: 1px solid var(--border);
-    position: relative; overflow: hidden;
-    animation: flicker 8s infinite;
-  }
-  .ascii-panel::before {
-    content: 'STATUS: ONLINE';
-    position: absolute; top: 8px; right: 12px;
-    font-family: var(--mono); font-size: 0.62rem;
-    color: var(--green); letter-spacing: 0.1em;
-  }
-  .ascii-panel::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, transparent 50%, rgba(0,255,65,0.03) 50%);
-    background-size: 100% 4px;
-    pointer-events: none;
-  }
-  .status-dot { display: inline-block; width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; margin-right: 6px; }
-
-  /* CVE BADGE */
-  .cve-badge {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: rgba(255,0,51,0.1); border: 1px solid var(--red);
-    padding: 8px 16px; margin-top: 16px;
-    font-family: var(--mono); font-size: 0.75rem;
-    animation: glow-red 2s ease-in-out infinite alternate;
-  }
-  .cve-badge .label { color: var(--red); font-weight: 700; letter-spacing: 0.1em; }
-  .cve-badge .id { color: #fff; }
-  @keyframes glow-red { from { box-shadow: 0 0 5px rgba(255,0,51,0.3); } to { box-shadow: 0 0 20px rgba(255,0,51,0.6); } }
+  .stat-num { font-size: 1.4rem; font-weight: 600; color: var(--text); font-family: var(--mono); }
+  .stat-label { font-size: 0.74rem; color: var(--text3); margin-top: 1px; }
 
   /* SECTION */
-  section { padding: 80px 0; border-top: 1px solid var(--border); }
-
-  .section-header {
-    display: flex; align-items: center; gap: 16px;
-    margin-bottom: 48px;
-  }
-  .section-num {
-    font-family: var(--vt); font-size: 3rem; color: rgba(0,255,65,0.15);
-    line-height: 1;
-  }
+  .section { padding: 36px 0; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
   .section-title {
-    font-family: var(--display); font-size: 1.1rem; font-weight: 700;
-    letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--green);
+    font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); margin-bottom: 20px;
   }
-  .section-line { flex: 1; height: 1px; background: var(--border); }
 
-  /* CERT CARDS */
-  .cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .cert-card {
-    padding: 20px; border: 1px solid var(--border);
-    background: rgba(0,255,65,0.02);
-    position: relative; overflow: hidden;
-    transition: all 0.3s;
+  /* CERT */
+  .cert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media(max-width:520px){ .cert-grid { grid-template-columns: 1fr; } }
+  .cert-item {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 13px 15px;
+    display: flex; gap: 10px; align-items: flex-start;
+    transition: border-color 0.15s;
   }
-  .cert-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: var(--green);
-    transition: width 0.3s;
-  }
-  .cert-card:hover { border-color: var(--green); background: var(--green-glow); }
-  .cert-card:hover::before { width: 100%; opacity: 0.05; }
-  .cert-icon { font-size: 1.4rem; margin-bottom: 10px; }
-  .cert-name {
-    font-family: var(--mono); font-size: 0.8rem;
-    color: var(--green); line-height: 1.5;
-  }
+  .cert-item:hover { border-color: rgba(88,166,255,0.4); }
+  .cert-icon { font-size: 1rem; line-height: 1.5; flex-shrink: 0; }
+  .cert-name { color: var(--text); font-size: 0.85rem; line-height: 1.5; }
+  .cert-sub { font-size: 0.74rem; color: var(--text3); margin-top: 1px; }
 
   /* TIMELINE */
-  .timeline { position: relative; padding-left: 28px; }
-  .timeline::before {
-    content: '';
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 1px; background: var(--border);
-  }
   .tl-item {
-    position: relative; margin-bottom: 28px;
-    opacity: 0; transform: translateX(-10px);
-    transition: all 0.4s;
+    display: grid; grid-template-columns: 120px 1fr;
+    gap: 12px; padding: 13px 0;
+    border-bottom: 1px solid var(--border2);
+    opacity: 0; transform: translateY(5px);
+    transition: opacity 0.3s, transform 0.3s;
   }
-  .tl-item.visible { opacity: 1; transform: translateX(0); }
-  .tl-dot {
-    position: absolute; left: -33px; top: 6px;
-    width: 10px; height: 10px;
-    background: var(--bg); border: 2px solid var(--green);
-    transition: all 0.3s;
+  .tl-item:last-child { border-bottom: none; }
+  .tl-item.in { opacity: 1; transform: translateY(0); }
+  .tl-date { font-family: var(--mono); font-size: 0.71rem; color: var(--text3); padding-top: 2px; line-height: 1.6; }
+  .tl-title { font-size: 0.88rem; color: var(--text); line-height: 1.6; }
+  .tl-sub { font-size: 0.77rem; color: var(--text3); margin-top: 2px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; margin-top: 5px;
+    border: 1px solid rgba(227,179,65,0.35); color: var(--orange);
+    background: rgba(227,179,65,0.08);
   }
-  .tl-item:hover .tl-dot { background: var(--green); box-shadow: 0 0 10px var(--green); }
-  .tl-date { font-size: 0.65rem; color: rgba(0,255,65,0.4); letter-spacing: 0.1em; margin-bottom: 4px; }
-  .tl-title { font-size: 0.82rem; color: var(--green); line-height: 1.5; margin-bottom: 2px; }
-  .tl-badge {
-    display: inline-block; font-size: 0.6rem;
-    padding: 2px 8px; border: 1px solid var(--yellow);
-    color: var(--yellow); letter-spacing: 0.1em; margin-top: 4px;
+  .badge-active {
+    border-color: rgba(63,185,80,0.35); color: var(--green);
+    background: rgba(63,185,80,0.08);
   }
+  @media(max-width:480px){ .tl-item { grid-template-columns: 1fr; gap: 3px; } }
 
-  /* PAPER CARDS */
-  .paper-list { display: flex; flex-direction: column; gap: 14px; }
-  .paper-card {
-    padding: 20px 24px; border: 1px solid var(--border);
-    background: rgba(0,255,65,0.02);
-    display: grid; grid-template-columns: auto 1fr;
-    gap: 16px; align-items: start;
-    transition: all 0.25s;
-    opacity: 0; transform: translateY(8px);
+  /* PAPERS */
+  .paper-item {
+    padding: 13px 0; border-bottom: 1px solid var(--border2);
+    display: flex; gap: 12px; align-items: flex-start;
+    opacity: 0; transform: translateY(5px);
+    transition: opacity 0.3s, transform 0.3s;
   }
-  .paper-card.visible { opacity: 1; transform: translateY(0); }
-  .paper-card:hover { border-color: rgba(0,255,65,0.5); background: var(--green-glow); }
-  .paper-idx {
-    font-family: var(--vt); font-size: 2rem;
-    color: rgba(0,255,65,0.2); line-height: 1; min-width: 32px;
-  }
+  .paper-item:last-child { border-bottom: none; }
+  .paper-item.in { opacity: 1; transform: translateY(0); }
   .paper-venue {
-    font-size: 0.62rem; color: var(--cyan); letter-spacing: 0.15em;
-    text-transform: uppercase; margin-bottom: 6px;
+    font-family: var(--mono); font-size: 0.68rem;
+    color: var(--accent); border: 1px solid rgba(88,166,255,0.25);
+    border-radius: 4px; padding: 2px 7px;
+    white-space: nowrap; flex-shrink: 0;
+    background: rgba(88,166,255,0.07);
+    height: fit-content; margin-top: 3px;
   }
-  .paper-title { font-size: 0.82rem; color: var(--green); line-height: 1.6; }
+  .paper-title { font-size: 0.88rem; color: var(--text); line-height: 1.7; }
 
-  /* CVE SECTION */
-  a.cve-card:hover { border-color: var(--red); box-shadow: 0 0 30px rgba(255,0,51,0.25); background: rgba(255,0,51,0.08); }
+  /* CONTRIBUTION */
+  .contrib-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .contrib-header {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.8rem; color: var(--text2);
+  }
+  .contrib-repo { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); }
+  .contrib-issue { font-size: 0.74rem; color: var(--text3); }
+  .contrib-body { padding: 16px; font-size: 0.88rem; color: var(--text2); line-height: 1.9; }
+  .contrib-body strong { color: var(--text); font-weight: 500; }
+  .contrib-footer {
+    padding: 10px 16px; border-top: 1px solid var(--border);
+    font-size: 0.74rem; color: var(--text3);
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .contrib-footer a { color: var(--accent); font-size: 0.74rem; }
+
+  /* CVE */
+  .cve-row { display: grid; grid-template-columns: auto 1fr; gap: 14px; }
+  @media(max-width:520px){ .cve-row { grid-template-columns: 1fr; } }
   .cve-card {
-    border: 1px solid var(--red); padding: 32px;
-    background: rgba(255,0,51,0.04);
-    position: relative; overflow: hidden;
-    max-width: 480px;
+    background: var(--bg2); border: 1px solid rgba(248,81,73,0.4);
+    border-radius: 8px; padding: 18px 20px;
+    display: block; text-decoration: none; min-width: 196px;
+    transition: border-color 0.15s, background 0.15s;
   }
-  .cve-card::before {
-    content: '⚠ CRITICAL';
-    position: absolute; top: 12px; right: 16px;
-    font-family: var(--mono); font-size: 0.62rem;
-    color: var(--red); letter-spacing: 0.15em;
-    animation: blink 1s step-end infinite;
+  .cve-card:hover { border-color: var(--red); background: rgba(248,81,73,0.05); text-decoration: none; }
+  .cve-tag { font-size: 0.68rem; color: var(--red); letter-spacing: 0.05em; margin-bottom: 6px; }
+  .cve-id { font-family: var(--mono); font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .cve-sub { font-size: 0.74rem; color: var(--text3); }
+  .cve-link-label { margin-top: 12px; font-size: 0.74rem; color: var(--accent); display: flex; align-items: center; gap: 4px; }
+  .cve-info {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 20px;
   }
-  .cve-id {
-    font-family: var(--display); font-size: clamp(1.4rem, 3vw, 2rem);
-    font-weight: 900; color: var(--red);
-    text-shadow: 0 0 30px rgba(255,0,51,0.5);
-    letter-spacing: 0.05em; margin-bottom: 8px;
-  }
-  .cve-sub { font-size: 0.72rem; color: rgba(255,255,255,0.4); }
-
-  /* TERMINAL BLOCK */
-  .terminal {
-    background: #0a0a0a; border: 1px solid var(--border);
-    padding: 20px; font-family: var(--mono); font-size: 0.78rem;
-    line-height: 1.8; margin-top: 32px;
-  }
-  .terminal .prompt { color: var(--green); }
-  .terminal .cmd { color: #fff; }
-  .terminal .out { color: rgba(0,255,65,0.5); }
-  .terminal .comment { color: rgba(0,255,65,0.3); }
+  .cve-row-item { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border2); }
+  .cve-row-item:last-child { border-bottom: none; }
+  .cve-key { font-family: var(--mono); font-size: 0.74rem; color: var(--text3); min-width: 90px; }
+  .cve-val { font-size: 0.84rem; color: var(--text); }
+  .cve-val.red { color: var(--red); }
+  .cve-val.green { color: var(--green); }
 
   /* FOOTER */
   footer {
-    padding: 48px 0; border-top: 1px solid var(--border);
-    text-align: center;
-  }
-  .footer-logo {
-    font-family: var(--display); font-size: 1.5rem; font-weight: 900;
-    color: var(--green); text-shadow: 0 0 30px var(--green-glow-strong);
-    margin-bottom: 16px;
-  }
-  .footer-text { font-size: 0.68rem; color: rgba(0,255,65,0.3); letter-spacing: 0.15em; }
-
-  /* GLITCH TEXT */
-  .glitch {
-    position: relative; display: inline-block;
-  }
-  .glitch::before, .glitch::after {
-    content: attr(data-text);
-    position: absolute; left: 0; top: 0;
-    width: 100%; height: 100%;
-  }
-  .glitch::before {
-    color: var(--cyan); animation: glitch1 3s infinite linear alternate-reverse;
-    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
-  }
-  .glitch::after {
-    color: var(--red); animation: glitch2 2.5s infinite linear alternate-reverse;
-    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    padding: 28px 0 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+    font-size: 0.78rem; color: var(--text3);
   }
 
-  /* ANIMATIONS */
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-  @keyframes flicker { 0%,98%,100%{opacity:1} 99%{opacity:0.8} }
-  @keyframes glitch1 {
-    0%{transform:translate(0)} 20%{transform:translate(-2px,1px)} 40%{transform:translate(1px,-1px)}
-    60%{transform:translate(-1px,2px)} 80%{transform:translate(2px,-2px)} 100%{transform:translate(0)}
+  /* PULSE DOT */
+  .pulse-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; background: var(--green);
+    margin-right: 5px; vertical-align: middle;
+    animation: pa 2s ease-in-out infinite;
   }
-  @keyframes glitch2 {
-    0%{transform:translate(0)} 20%{transform:translate(2px,-1px)} 40%{transform:translate(-1px,1px)}
-    60%{transform:translate(1px,-2px)} 80%{transform:translate(-2px,2px)} 100%{transform:translate(0)}
-  }
-  @keyframes scanline {
-    0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)}
-  }
-  .scanline-anim {
-    position: fixed; top: 0; left: 0; right: 0;
-    height: 2px; background: rgba(0,255,65,0.08);
-    animation: scanline 6s linear infinite;
-    pointer-events: none; z-index: 5000;
-  }
-
-  /* HEXGRID DECO */
-  .hex-deco {
-    position: absolute; right: -60px; top: 50%;
-    transform: translateY(-50%);
-    opacity: 0.06; font-family: var(--mono); font-size: 0.55rem;
-    color: var(--green); line-height: 1.4; letter-spacing: 0.05em;
-    pointer-events: none;
-  }
-
-  /* PROGRESS BARS */
-  .skill-bar { margin-bottom: 12px; }
-  .skill-label { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 4px; color: rgba(0,255,65,0.7); }
-  .skill-track { height: 4px; background: rgba(0,255,65,0.1); overflow: hidden; }
-  .skill-fill { height: 100%; background: var(--green); width: 0; transition: width 1.5s cubic-bezier(0.16,1,0.3,1); box-shadow: 0 0 8px var(--green); }
-  .skill-fill.loaded { /* set via JS */ }
-
-  /* TYPED cursor in hero */
-  #typed-cursor { animation: blink 0.7s step-end infinite; color: var(--green); }
+  @keyframes pa { 0%,100%{opacity:1} 50%{opacity:0.3} }
 </style>
 </head>
 <body>
 
-<canvas id="matrix-bg"></canvas>
-<div class="scanline-anim"></div>
-<div id="cursor"></div>
-<div id="cursor-dot"></div>
-
-<!-- BOOT SCREEN -->
-<div id="boot">
-  <pre id="boot-text"></pre><span id="boot-cursor"></span>
-</div>
-
-<!-- NAV -->
 <nav>
-  <div class="wrapper">
+  <div class="page">
     <div class="nav-inner">
-      <div class="nav-logo">JC<span>0818</span>::SECURITY</div>
+      <div class="nav-logo"><span>@</span>jc0818</div>
       <div class="nav-links">
-        <a href="#about">0x00_intro</a>
-        <a href="#certs">0x01_certs</a>
-        <a href="#activity">0x02_activity</a>
-        <a href="#papers">0x03_papers</a>
-        <a href="#cve">0x04_cve</a>
+        <a href="#certs">Certs</a>
+        <a href="#activity">Activity</a>
+        <a href="#papers">Papers</a>
+        <a href="#contrib">Contributions</a>
+        <a href="#cve">CVE</a>
       </div>
     </div>
   </div>
 </nav>
 
-<!-- HERO -->
-<section id="about" style="border-top:none;">
-  <div class="wrapper">
-    <div style="position:relative; overflow:hidden;">
-      <div class="hero-grid">
-        <div>
-          <div class="hero-tag">Security Researcher & Vulnerability Analyst</div>
-          <h1 class="hero-name glitch" data-text="jc0818">jc0818</h1>
-          <div class="hero-handle">&gt; HACKING THE FUTURE_<span id="typed-cursor">|</span></div>
-          <p class="hero-desc">
-            Vulnerability analyst focused on Windows program vulnerability research and CVE discovery. 
-            Currently researching at Dongguk University.
-          </p>
-          <div class="hero-btns">
-            <a href="#papers" class="btn-primary">RESEARCH</a>
-            <a href="#cve" class="btn-secondary">CVE RECORD</a>
-          </div>
-          <div class="cve-badge">
-            <span class="status-dot"></span>
-            <span class="label">CVE</span>
-            <span class="id">2025-61037 DISCLOSED</span>
-          </div>
-        </div>
-        <div>
-          <div class="ascii-panel">
-<pre style="font-family:var(--vt);font-size:clamp(0.45rem,1vw,0.75rem);color:var(--green-dim)">
- ██╗ ██████╗ ██████╗  █████╗  ██╗ █████╗
- ██║██╔════╝██╔═══██╗██╔══██╗███║██╔══██╗
- ██║██║     ██║   ██║╚██████║╚██║╚█████╔╝
-██ ██║██║   ██║   ██║ ╚═══██║ ██║██╔══██╗
-╚████╔╝╚██████╗╚██████╔╝ █████╔╝ ██║╚█████╔╝
- ╚═══╝  ╚═════╝ ╚═════╝  ╚════╝  ╚═╝ ╚════╝
-</pre>
-            <br>
-            <div style="font-size:0.7rem;line-height:2;color:rgba(0,255,65,0.5)">
-<span style="color:var(--green)">user@sec-lab</span><span style="color:rgba(0,255,65,0.4)">:~$</span> <span style="color:#fff">whoami</span><br>
-&gt; jc0818 :: vulnerability-researcher<br>
-<span style="color:var(--green)">user@sec-lab</span><span style="color:rgba(0,255,65,0.4)">:~$</span> <span style="color:#fff">cat focus.txt</span><br>
-&gt; Vulnerability Analysis<br>
-&gt; Side-Channel Analysis / CVE<br>
-&gt; Web Vuln / Reverse Engineering<br>
-<span style="color:var(--green)">user@sec-lab</span><span style="color:rgba(0,255,65,0.4)">:~$</span> <span style="color:#fff">status</span><br>
-&gt; <span style="color:var(--green)">■</span> ACTIVE — Dongguk Univ. Lab<br>
-&gt; <span style="color:var(--green)">■</span> ACTIVE — KITRI pre-BOB 3rd
-            </div>
-          </div>
-          <div style="margin-top:16px;">
-            <div class="skill-bar"><div class="skill-label"><span>Vulnerability Analysis</span><span>70%</span></div><div class="skill-track"><div class="skill-fill" data-w="70"></div></div></div>
-            <div class="skill-bar"><div class="skill-label"><span>Reverse Engineering</span><span>58%</span></div><div class="skill-track"><div class="skill-fill" data-w="58"></div></div></div>
-            <div class="skill-bar"><div class="skill-label"><span>Web Hacking</span><span>50%</span></div><div class="skill-track"><div class="skill-fill" data-w="50"></div></div></div>
-          </div>
-        </div>
+<div class="page">
+
+  <!-- PROFILE -->
+  <div class="profile">
+    <div class="profile-top">
+      <img class="avatar" src="https://github.com/jc0818.png" alt="jc0818">
+      <div>
+        <div class="profile-name">jc0818</div>
+        <div class="profile-handle">Security Researcher</div>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- CERTS -->
-<section id="certs">
-  <div class="wrapper">
-    <div class="section-header">
-      <div class="section-num">0x01</div>
-      <div class="section-title">Certificates</div>
-      <div class="section-line"></div>
+    <div class="profile-bio">
+      Vulnerability analyst focused on Windows program vulnerability research and CVE discovery.
     </div>
+    <div class="chips">
+      <span class="chip blue">Vulnerability Analysis</span>
+      <span class="chip blue">Windows Security</span>
+      <span class="chip orange">Reversing Engineering</span>
+      <span class="chip green">CVE Discovery</span>
+      <span class="chip green">Bug Bounty</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Publications</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">1</div>
+      <div class="stat-label">CVE Disclosed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">4</div>
+      <div class="stat-label">Certificates</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">10+</div>
+      <div class="stat-label">Activities</div>
+    </div>
+  </div>
+
+  <!-- CERTS -->
+  <div class="section" id="certs">
+    <div class="section-title">Certificates</div>
     <div class="cert-grid">
-      <div class="cert-card">
+      <div class="cert-item">
         <div class="cert-icon">💻</div>
-        <div class="cert-name">K-Shield Jr. 13th<br><span style="color:rgba(0,255,65,0.5);font-size:0.72rem">Vulnerability Analysis Process</span></div>
+        <div>
+          <div class="cert-name">K-Shield Jr. 13th</div>
+          <div class="cert-sub">Vulnerability Analysis Process</div>
+        </div>
       </div>
-      <div class="cert-card">
+      <div class="cert-item">
         <div class="cert-icon">⌨️</div>
-        <div class="cert-name">KISA Bug Hunting<br><span style="color:rgba(0,255,65,0.5);font-size:0.72rem">Intermediate Course</span></div>
+        <div>
+          <div class="cert-name">KISA Bug Hunting</div>
+          <div class="cert-sub">Intermediate Course</div>
+        </div>
       </div>
-      <div class="cert-card">
+      <div class="cert-item">
         <div class="cert-icon">🖥️</div>
-        <div class="cert-name">Information Processing<br><span style="color:rgba(0,255,65,0.5);font-size:0.72rem">Industry Engineer</span></div>
+        <div>
+          <div class="cert-name">정보처리산업기사</div>
+          <div class="cert-sub">Information Processing Industry Engineer</div>
+        </div>
       </div>
-      <div class="cert-card">
+      <div class="cert-item">
         <div class="cert-icon">🛡️</div>
-        <div class="cert-name">White Hat School<br><span style="color:rgba(0,255,65,0.5);font-size:0.72rem">pre-BOB 3rd (KITRI)</span></div>
+        <div>
+          <div class="cert-name">White Hat School (pre-BOB) 3rd</div>
+          <div class="cert-sub">KITRI</div>
+        </div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ACTIVITY -->
-<section id="activity">
-  <div class="wrapper">
-    <div class="section-header">
-      <div class="section-num">0x02</div>
-      <div class="section-title">Activity Timeline</div>
-      <div class="section-line"></div>
-    </div>
-    <div class="timeline">
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2025.05.14 ~ PRESENT</div>
-        <div class="tl-title">Dongguk University Plass — Undergraduate Researcher<br><span style="color:rgba(0,255,65,0.5)">Computer Security, Vulnerability Analysis</span></div>
-        <span class="tl-badge">ACTIVE</span>
+  <!-- ACTIVITY -->
+  <div class="section" id="activity">
+    <div class="section-title">Activity</div>
+
+    <div class="tl-item">
+      <div class="tl-date">2025.05 ~<br>2026.03</div>
+      <div>
+        <div class="tl-title">Dongguk University Plass LAB — Undergraduate Researcher</div>
+        <div class="tl-sub">Computer Security, Vulnerability Analysis</div>
+        
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2025.03.10 ~ 2025.09.24</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2025.03 ~<br>2025.09</div>
+      <div>
         <div class="tl-title">KITRI — White Hat School (pre-BOB) 3rd</div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2025.05.01 ~ 2025.08.02</div>
-        <div class="tl-title">KITRI pre-BOB 3rd Team Project — <span style="color:var(--cyan)">SeaBugs</span></div>
-        <span class="tl-badge">🏅 Outstanding Project</span>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2025.05 ~<br>2025.08</div>
+      <div>
+        <div class="tl-title">pre-BOB 3rd Team Project — SeaBugs</div>
+        <span class="badge">🏅 Outstanding Project</span>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2024.04.16 ~ 2025.05.14</div>
-        <div class="tl-title">Dongguk University Wise — Undergraduate Researcher in Computer Science</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2024.04 ~<br>2025.05</div>
+      <div>
+        <div class="tl-title">Dongguk University Wise — Undergraduate Researcher</div>
+        <div class="tl-sub">Computer Science</div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2024.11.30 ~ 2024.12.01</div>
-        <div class="tl-title">2024 Korea Gyeongbuk Regional Problem Solving Hackathon — Management Team</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2024.11 ~<br>2024.12</div>
+      <div>
+        <div class="tl-title">2024 Korea Gyeongbuk Regional Problem Solving Hackathon</div>
+        <div class="tl-sub">Management Team</div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2024.03.11 ~ 2024.11.25</div>
-        <div class="tl-title">Dongguk University Wise — Developer Web Site <span style="color:var(--cyan)">PM</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2024.03 ~<br>2024.11</div>
+      <div>
+        <div class="tl-title">Dongguk University Wise — Developer Web Site PM</div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2024.07.22 ~ 2024.08.20</div>
-        <div class="tl-title">K-Shield Jr. 13th Team Project — <span style="color:var(--cyan)">PM</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2024.07 ~<br>2024.08</div>
+      <div>
+        <div class="tl-title">K-Shield Jr. 13th Team Project — PM</div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2024.05 ~ 2024.11</div>
-        <div class="tl-title">Radio Frequency Attack Detection Platform<br><span style="color:rgba(0,255,65,0.5)">Dongguk University Wise StartUp Club — WaveFort</span></div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2024.05 ~<br>2024.11</div>
+      <div>
+        <div class="tl-title">Radio Frequency Attack Detection Platform</div>
+        <div class="tl-sub">Dongguk University Wise StartUp Club — WaveFort</div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2024.03.25 ~ 2024.06.17</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2024.03 ~<br>2024.06</div>
+      <div>
         <div class="tl-title">Dongguk University Wise — DGU-Stack-Up</div>
       </div>
-      <div class="tl-item">
-        <div class="tl-dot"></div>
-        <div class="tl-date">2024.05.12</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">2024.05.12</div>
+      <div>
         <div class="tl-title">Scenario for Establishing a Securities Company Network Using GNS3</div>
       </div>
     </div>
+    
   </div>
-</section>
 
-<!-- PAPERS -->
-<section id="papers">
-  <div class="wrapper">
-    <div class="section-header">
-      <div class="section-num">0x03</div>
-      <div class="section-title">Publications</div>
-      <div class="section-line"></div>
+  <!-- PAPERS -->
+  <div class="section" id="papers">
+    <div class="section-title">Publications</div>
+
+    <div class="paper-item">
+      <div class="paper-venue">CISC'25</div>
+      <div class="paper-title">Analysis of ECDIS Cybersecurity Threat Scenarios Applying the S-100 Standard: A STRIDE Model-based Approach</div>
     </div>
-    <div class="paper-list">
-      <div class="paper-card">
-        <div class="paper-idx">01</div>
-        <div>
-          <div class="paper-venue">CISC'25</div>
-          <div class="paper-title">Analysis of ECDIS Cybersecurity Threat Scenarios Applying the S-100 Standard: A STRIDE Model-based Approach</div>
-        </div>
+    <div class="paper-item">
+      <div class="paper-venue">CISC'25</div>
+      <div class="paper-title">A Methodology for Cyber Threat Assessment of ECDIS IP Interfaces in Compliance with the S-100 Standard</div>
+    </div>
+    <div class="paper-item">
+      <div class="paper-venue">CISC'25</div>
+      <div class="paper-title">Mitigating the Risks of Chart Deletion Updates in ECDIS: A Procedural Approach</div>
+    </div>
+    <div class="paper-item">
+      <div class="paper-venue">WISA'25</div>
+      <div class="paper-title">NMEA Under Siege: Dynamic Flooding Attacks and Defenses</div>
+    </div>
+    <div class="paper-item">
+      <div class="paper-venue">WISA'25</div>
+      <div class="paper-title">Visual Tampering in S-52: Threats and Protections</div>
+    </div>
+    <div class="paper-item">
+      <div class="paper-venue">ISIS'25</div>
+      <div class="paper-title">Quantum Neural Network Approach for Classifying Dummy Power Traces in Side-Channel Analysis</div>
+    </div>
+  </div>
+
+  <!-- CONTRIBUTIONS -->
+  <div class="section" id="contrib">
+    <div class="section-title">Open Source Contributions</div>
+    <div class="contrib-card">
+      <div class="contrib-header">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="color:#8b949e;flex-shrink:0">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span class="contrib-repo">naver / billboard.js</span>
       </div>
-      <div class="paper-card">
-        <div class="paper-idx">02</div>
-        <div>
-          <div class="paper-venue">CISC'25</div>
-          <div class="paper-title">A Methodology for Cyber Threat Assessment of ECDIS IP Interfaces in Compliance with the S-100 Standard</div>
-        </div>
+      <div class="contrib-body">
+        <span style="color:var(--green)">NAVER</span> Open Source Contributions
       </div>
-      <div class="paper-card">
-        <div class="paper-idx">03</div>
-        <div>
-          <div class="paper-venue">CISC'25</div>
-          <div class="paper-title">Mitigating the Risks of Chart Deletion Updates in ECDIS: A Procedural Approach</div>
-        </div>
-      </div>
-      <div class="paper-card">
-        <div class="paper-idx">04</div>
-        <div>
-          <div class="paper-venue">WISA_2025</div>
-          <div class="paper-title">NMEA Under Siege: Dynamic Flooding Attacks and Defenses</div>
-        </div>
-      </div>
-      <div class="paper-card">
-        <div class="paper-idx">05</div>
-        <div>
-          <div class="paper-venue">WISA_2025</div>
-          <div class="paper-title">Visual Tampering in S-52: Threats and Protections</div>
-        </div>
-      </div>
-      <div class="paper-card">
-        <div class="paper-idx">06</div>
-        <div>
-          <div class="paper-venue">ISIS_2025</div>
-          <div class="paper-title">Quantum Neural Network Approach for Classifying Dummy Power Traces in Side-Channel Analysis</div>
-        </div>
+      <div class="contrib-footer">
+        <a href="https://github.com/naver/billboard.js/graphs/contributors" target="_blank" rel="noopener">view it on GitHub</a>
       </div>
     </div>
   </div>
-</section>
 
-<!-- CVE -->
-<section id="cve">
-  <div class="wrapper">
-    <div class="section-header">
-      <div class="section-num">0x04</div>
-      <div class="section-title">CVE Record</div>
-      <div class="section-line"></div>
-    </div>
-    <div style="display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start">
-      <a href="https://nvd.nist.gov/vuln/detail/CVE-2025-61037" target="_blank" rel="noopener" class="cve-card" style="text-decoration:none;display:block;cursor:none;">
-        <div style="font-size:0.65rem;color:var(--red);letter-spacing:0.2em;margin-bottom:12px">■ VULNERABILITY DISCLOSED</div>
+  <!-- CVE -->
+  <div class="section" id="cve">
+    <div class="section-title">CVE</div>
+    <div class="cve-row">
+      <a class="cve-card" href="https://nvd.nist.gov/vuln/detail/CVE-2025-61037" target="_blank" rel="noopener">
+        <div class="cve-tag">■ VULNERABILITY</div>
         <div class="cve-id">CVE-2025-61037</div>
-        <div class="cve-sub">Common Vulnerabilities and Exposures<br>NVD — National Vulnerability Database</div>
-        <div style="margin-top:16px;font-size:0.62rem;color:rgba(0,255,65,0.4);letter-spacing:0.12em;display:flex;align-items:center;gap:6px;">
-          <span style="color:var(--green)">↗</span> nvd.nist.gov
+        <div class="cve-sub">NVD · National Vulnerability Database</div>
+        <div class="cve-link-label">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M10.604 1h4.146a.25.25 0 01.25.25v4.146a.25.25 0 01-.427.177L13.03 4.03 9.28 7.78a.75.75 0 01-1.06-1.06l3.75-3.75-1.543-1.543A.25.25 0 0110.604 1zM3.75 2A1.75 1.75 0 002 3.75v8.5c0 .966.784 1.75 1.75 1.75h8.5A1.75 1.75 0 0014 12.25v-3.5a.75.75 0 00-1.5 0v3.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-8.5a.25.25 0 01.25-.25h3.5a.75.75 0 000-1.5h-3.5z"/></svg>
+          nvd.nist.gov
         </div>
       </a>
-      <div class="terminal" style="flex:1;min-width:260px">
-        <div><span class="prompt">root@nvd:~$</span> <span class="cmd">query CVE-2025-61037</span></div>
-        <div class="out">&gt; Fetching record...</div>
-        <div class="out">&gt; Status: <span style="color:var(--red)">PUBLISHED</span></div>
-        <div class="out">&gt; Reporter: jc0818</div>
-        <div class="out">&gt; Year: 2025</div>
-        <div class="out">&gt; ─────────────────────</div>
-        <div><span class="prompt">root@nvd:~$</span> <span class="cmd">cat researcher.txt</span></div>
-        <div class="out">&gt; Found and disclosed independently</div>
-        <div class="out">&gt; <span style="color:var(--green)">✓</span> Responsible disclosure process followed</div>
-        <div class="comment"># Keep hunting. Stay ethical.</div>
-        <div style="margin-top:8px;"><span class="prompt">root@nvd:~$</span> <span class="cmd"><a href="https://nvd.nist.gov/vuln/detail/CVE-2025-61037" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:underline;text-underline-offset:3px;cursor:none;">open https://nvd.nist.gov/vuln/detail/CVE-2025-61037</a></span></div>
-        <div class="out">&gt; <span style="color:var(--green)">Launching browser...</span></div>
+      <div class="cve-info">
+        <div class="cve-row-item">
+          <span class="cve-key">Reporter</span>
+          <span class="cve-val">jc0818</span>
+        </div>
+        <div class="cve-row-item">
+          <span class="cve-key">Year</span>
+          <span class="cve-val">2025</span>
+        </div>
+        <div class="cve-row-item">
+          <span class="cve-key">Status</span>
+          <span class="cve-val green">Published</span>
+        </div>
+        <div class="cve-row-item">
+          <span class="cve-key">Disclosure</span>
+          <span class="cve-val">Independent</span>
+        </div>
+        <div class="cve-row-item">
+          <span class="cve-key">CVSS</span>
+          <span class="cve-val red">7.0 (high)</span>
+        </div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- FOOTER -->
-<footer>
-  <div class="wrapper">
-    <div class="footer-logo">JC0818</div>
-    <div class="footer-text">
-      &lt;/&gt; BUILT WITH PASSION & CAFFEINE &nbsp;|&nbsp; VULNERABILITY RESEARCHER &nbsp;|&nbsp; STAY ETHICAL
+</div>
+
+<div class="page">
+  <footer>
+    <span>@jc0818</span>
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+      <a href="mailto:jc081810qpang@naver.com" style="display:flex;align-items:center;gap:5px;color:var(--text3);font-size:0.78rem;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M1.75 2A1.75 1.75 0 000 3.75v.736a.75.75 0 000 .027V12.25c0 .966.784 1.75 1.75 1.75h12.5A1.75 1.75 0 0016 12.25V3.75A1.75 1.75 0 0014.25 2H1.75zM14.5 4.07v-.32a.25.25 0 00-.25-.25H1.75a.25.25 0 00-.25.25v.32L8 7.88l6.5-3.81zm-13 1.74l6.07 3.55a.75.75 0 00.76 0L14.5 5.81v6.44a.25.25 0 01-.25.25H1.75a.25.25 0 01-.25-.25V5.81z"/></svg>
+        jc081810qpang@naver.com
+      </a>
+      <a href="https://github.com/jc0818" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;color:var(--text3);font-size:0.78rem;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        github.com/jc0818
+      </a>
     </div>
-    <div style="margin-top:24px;font-size:0.62rem;color:rgba(0,255,65,0.2);letter-spacing:0.1em">
-      ALL RESEARCH CONDUCTED WITHIN LEGAL AND ETHICAL BOUNDARIES
-    </div>
-  </div>
-</footer>
+  </footer>
+</div>
 
 <script>
-// CURSOR
-const cursor = document.getElementById('cursor');
-const dot = document.getElementById('cursor-dot');
-let cx=0,cy=0,dx=0,dy=0;
-document.addEventListener('mousemove', e => { dx=e.clientX; dy=e.clientY; dot.style.left=dx+'px'; dot.style.top=dy+'px'; });
-(function animCursor(){
-  cx += (dx-cx)*0.12; cy += (dy-cy)*0.12;
-  cursor.style.left=cx+'px'; cursor.style.top=cy+'px';
-  requestAnimationFrame(animCursor);
-})();
-document.querySelectorAll('a,button').forEach(el => {
-  el.addEventListener('mouseenter', () => { cursor.style.width='40px'; cursor.style.height='40px'; cursor.style.background='rgba(0,255,65,0.1)'; });
-  el.addEventListener('mouseleave', () => { cursor.style.width='20px'; cursor.style.height='20px'; cursor.style.background='transparent'; });
-});
-
-// MATRIX RAIN
-const canvas = document.getElementById('matrix-bg');
-const ctx = canvas.getContext('2d');
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resizeCanvas(); window.addEventListener('resize', resizeCanvas);
-const chars = 'ｦｧｨｩｪｫｬｭｮｯｰｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ01ABCDEFabcdef<>/\\!@#$';
-const cols = Math.floor(window.innerWidth / 16);
-const drops = Array.from({length:cols}, () => Math.random() * -100);
-function drawMatrix() {
-  ctx.fillStyle = 'rgba(0,0,0,0.05)'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = '#00ff41'; ctx.font = '13px Share Tech Mono';
-  for(let i=0;i<drops.length;i++){
-    ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*16, drops[i]*16);
-    if(drops[i]*16 > canvas.height && Math.random() > 0.975) drops[i]=0;
-    drops[i]++;
-  }
-}
-setInterval(drawMatrix, 45);
-
-// BOOT SEQUENCE
-const bootLines = [
-  'BIOS v2.025 :: SECURITY RESEARCH TERMINAL',
-  '══════════════════════════════════════════',
-  'Initializing memory...             [OK]',
-  'Loading kernel modules...          [OK]',
-  'Mounting filesystems...            [OK]',
-  'Starting network interfaces...     [OK]',
-  '──────────────────────────────────────────',
-  'Authenticating operator: jc0818',
-  'Access Level: RESEARCHER :: AUTHORIZED',
-  '──────────────────────────────────────────',
-  'CVE-2025-61037........................LOADED',
-  'Publications (6)......................LOADED',
-  'Activity records......................LOADED',
-  '══════════════════════════════════════════',
-  'SYSTEM READY. WELCOME BACK, jc0818.',
-];
-const bootEl = document.getElementById('boot-text');
-const bootDiv = document.getElementById('boot');
-let li=0,ci=0;
-function typeBoot(){
-  if(li>=bootLines.length){ setTimeout(()=>{ bootDiv.style.opacity='0'; setTimeout(()=>{ bootDiv.style.display='none'; animateSkills(); }, 500); }, 400); return; }
-  if(ci<bootLines[li].length){ bootEl.textContent+=bootLines[li][ci++]; setTimeout(typeBoot, li<2?18:12); }
-  else{ bootEl.textContent+='\n'; li++; ci=0; setTimeout(typeBoot, li===1||li===5?60:30); }
-}
-setTimeout(typeBoot, 300);
-
-// SCROLL ANIMATIONS
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
-}, {threshold:0.1});
-document.querySelectorAll('.tl-item,.paper-card').forEach(el => observer.observe(el));
-
-// SKILL BARS
-function animateSkills(){
-  document.querySelectorAll('.skill-fill').forEach(el => {
-    setTimeout(()=>{ el.style.width = el.dataset.w + '%'; }, 100);
+const io = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), i * 40);
+    }
   });
-}
-
-// GLITCH random re-trigger
-setInterval(() => {
-  const g = document.querySelector('.glitch');
-  if(!g) return;
-  g.style.animation = 'none';
-  void g.offsetWidth;
-}, 4000);
+}, { threshold: 0.05 });
+document.querySelectorAll('.tl-item, .paper-item').forEach(el => io.observe(el));
 </script>
 </body>
 </html>
