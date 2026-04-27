@@ -81,7 +81,7 @@
   .chip.green  { border-color: rgba(63,185,80,0.35); color: var(--green); background: rgba(63,185,80,0.08); }
   .chip.orange { border-color: rgba(227,179,65,0.35); color: var(--orange); background: rgba(227,179,65,0.08); }
 
-  /* STATS */
+  /* STATS BAR */
   .stats {
     display: flex; gap: 36px; flex-wrap: wrap;
     padding: 24px 0; border-bottom: 1px solid var(--border);
@@ -131,10 +131,6 @@
     border: 1px solid rgba(227,179,65,0.35); color: var(--orange);
     background: rgba(227,179,65,0.08);
   }
-  .badge-active {
-    border-color: rgba(63,185,80,0.35); color: var(--green);
-    background: rgba(63,185,80,0.08);
-  }
   @media(max-width:480px){ .tl-item { grid-template-columns: 1fr; gap: 3px; } }
 
   /* PAPERS */
@@ -156,6 +152,22 @@
   }
   .paper-title { font-size: 0.88rem; color: var(--text); line-height: 1.7; }
 
+  /* AWARDS */
+  .award-item {
+    background: var(--bg2); border: 1px solid rgba(227,179,65,0.35);
+    border-radius: 8px; padding: 16px 18px;
+    display: flex; gap: 14px; align-items: flex-start;
+    opacity: 0; transform: translateY(5px);
+    transition: opacity 0.3s, transform 0.3s, border-color 0.15s;
+  }
+  .award-item.in { opacity: 1; transform: translateY(0); }
+  .award-item:hover { border-color: var(--orange); }
+  .award-medal { font-size: 1.4rem; flex-shrink: 0; line-height: 1.4; }
+  .award-date { font-family: var(--mono); font-size: 0.71rem; color: var(--text3); margin-bottom: 4px; }
+  .award-title { font-size: 0.88rem; color: var(--text); line-height: 1.6; }
+  .award-title strong { color: var(--orange); font-weight: 500; }
+  .award-sub { font-size: 0.77rem; color: var(--text3); margin-top: 3px; }
+
   /* CONTRIBUTION */
   .contrib-card {
     background: var(--bg2); border: 1px solid var(--border);
@@ -167,9 +179,7 @@
     font-size: 0.8rem; color: var(--text2);
   }
   .contrib-repo { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); }
-  .contrib-issue { font-size: 0.74rem; color: var(--text3); }
   .contrib-body { padding: 16px; font-size: 0.88rem; color: var(--text2); line-height: 1.9; }
-  .contrib-body strong { color: var(--text); font-weight: 500; }
   .contrib-footer {
     padding: 10px 16px; border-top: 1px solid var(--border);
     font-size: 0.74rem; color: var(--text3);
@@ -202,6 +212,19 @@
   .cve-val.red { color: var(--red); }
   .cve-val.green { color: var(--green); }
 
+  /* EXT STATS */
+  .ext-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .ext-stat-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+    transition: border-color 0.15s; text-decoration: none;
+  }
+  .ext-stat-card:hover { border-color: rgba(88,166,255,0.4); text-decoration: none; }
+  .ext-stat-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .ext-stat-name { font-size: 0.82rem; color: var(--text); font-weight: 500; }
+  .ext-stat-sub { font-size: 0.74rem; color: var(--text3); margin-top: 2px; }
+
   /* FOOTER */
   footer {
     padding: 28px 0 40px;
@@ -229,9 +252,11 @@
       <div class="nav-links">
         <a href="#certs">Certs</a>
         <a href="#activity">Activity</a>
+        <a href="#awards">Awards</a>
         <a href="#papers">Papers</a>
         <a href="#contrib">Contributions</a>
         <a href="#cve">CVE</a>
+        <a href="#ext-stats">Stats</a>
       </div>
     </div>
   </div>
@@ -260,7 +285,7 @@
     </div>
   </div>
 
-  <!-- STATS -->
+  <!-- STATS BAR -->
   <div class="stats">
     <div class="stat">
       <div class="stat-num">6</div>
@@ -285,6 +310,13 @@
     <div class="section-title">Certificates</div>
     <div class="cert-grid">
       <div class="cert-item">
+        <div class="cert-icon">🛡️</div>
+        <div>
+          <div class="cert-name">White Hat School (pre-BOB) 3rd</div>
+          <div class="cert-sub">Vulnerability Analysis Process · KITRI</div>
+        </div>
+      </div>
+      <div class="cert-item">
         <div class="cert-icon">💻</div>
         <div>
           <div class="cert-name">K-Shield Jr. 13th</div>
@@ -305,13 +337,6 @@
           <div class="cert-sub">Information Processing Industry Engineer</div>
         </div>
       </div>
-      <div class="cert-item">
-        <div class="cert-icon">🛡️</div>
-        <div>
-          <div class="cert-name">White Hat School (pre-BOB) 3rd</div>
-          <div class="cert-sub">KITRI</div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -320,11 +345,10 @@
     <div class="section-title">Activity</div>
 
     <div class="tl-item">
-      <div class="tl-date">2025.05 ~<br>2026.03</div>
+      <div class="tl-date">2025.03 ~<br>2026.03</div>
       <div>
         <div class="tl-title">Dongguk University Plass LAB — Undergraduate Researcher</div>
         <div class="tl-sub">Computer Security, Vulnerability Analysis</div>
-        
       </div>
     </div>
     <div class="tl-item">
@@ -343,21 +367,14 @@
     <div class="tl-item">
       <div class="tl-date">2024.04 ~<br>2025.05</div>
       <div>
-        <div class="tl-title">Dongguk University Wise — Undergraduate Researcher</div>
+        <div class="tl-title">Dongguk University Wise Data Analytics LAB — Undergraduate Researcher</div>
         <div class="tl-sub">Computer Science</div>
-      </div>
-    </div>
-    <div class="tl-item">
-      <div class="tl-date">2024.11 ~<br>2024.12</div>
-      <div>
-        <div class="tl-title">2024 Korea Gyeongbuk Regional Problem Solving Hackathon</div>
-        <div class="tl-sub">Management Team</div>
       </div>
     </div>
     <div class="tl-item">
       <div class="tl-date">2024.03 ~<br>2024.11</div>
       <div>
-        <div class="tl-title">Dongguk University Wise — Developer Web Site PM</div>
+        <div class="tl-title">Dongguk University Wise — Developer Club Web Site PM</div>
       </div>
     </div>
     <div class="tl-item">
@@ -366,26 +383,19 @@
         <div class="tl-title">K-Shield Jr. 13th Team Project — PM</div>
       </div>
     </div>
-    <div class="tl-item">
-      <div class="tl-date">2024.05 ~<br>2024.11</div>
+  </div>
+
+  <!-- AWARDS -->
+  <div class="section" id="awards">
+    <div class="section-title">Awards</div>
+    <div class="award-item">
+      <div class="award-medal">🏅</div>
       <div>
-        <div class="tl-title">Radio Frequency Attack Detection Platform</div>
-        <div class="tl-sub">Dongguk University Wise StartUp Club — WaveFort</div>
+        <div class="award-date">2025.05 ~ 2025.08</div>
+        <div class="award-title">White Hat School (pre-BOB) 3rd Team Project — <strong>SeaBugs</strong></div>
+        <div class="award-sub">Outstanding Project Selected</div>
       </div>
     </div>
-    <div class="tl-item">
-      <div class="tl-date">2024.03 ~<br>2024.06</div>
-      <div>
-        <div class="tl-title">Dongguk University Wise — DGU-Stack-Up</div>
-      </div>
-    </div>
-    <div class="tl-item">
-      <div class="tl-date">2024.05.12</div>
-      <div>
-        <div class="tl-title">Scenario for Establishing a Securities Company Network Using GNS3</div>
-      </div>
-    </div>
-    
   </div>
 
   <!-- PAPERS -->
@@ -475,6 +485,9 @@
     </div>
   </div>
 
+  <!-- EXT STATS -->
+ 
+
 </div>
 
 <div class="page">
@@ -501,7 +514,7 @@ const io = new IntersectionObserver(entries => {
     }
   });
 }, { threshold: 0.05 });
-document.querySelectorAll('.tl-item, .paper-item').forEach(el => io.observe(el));
+document.querySelectorAll('.tl-item, .paper-item, .award-item').forEach(el => io.observe(el));
 </script>
 </body>
 </html>
